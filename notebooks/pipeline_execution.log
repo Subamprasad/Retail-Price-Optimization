@@ -18,3 +18,14 @@
 2025-12-18 17:37:22,993 - __main__ - INFO -   ✗ PIPELINE_NAME: MISSING
 2025-12-18 17:37:22,995 - __main__ - INFO -   ✗ MODEL_NAME: MISSING
 2025-12-18 17:37:22,997 - __main__ - ERROR - Pipeline failed: Environment validation failed
+2025-12-18 18:42:18,194 - __main__ - INFO - Project root: c:\Users\subam\Desktop\Retail-Price-Optimization-MLOPS
+2025-12-18 18:42:18,197 - __main__ - INFO - Working directory: c:\Users\subam\Desktop\Retail-Price-Optimization-MLOPS\notebooks
+2025-12-18 18:42:31,659 - __main__ - INFO - Validating environment setup...
+2025-12-18 18:42:31,664 - __main__ - INFO -   ✓ DB_URL: OK
+2025-12-18 18:42:31,667 - __main__ - INFO -   ✗ PIPELINE_NAME: MISSING
+2025-12-18 18:42:31,669 - __main__ - INFO -   ✗ MODEL_NAME: MISSING
+2025-12-18 18:42:31,738 - __main__ - INFO - Validating environment setup...
+2025-12-18 18:42:31,741 - __main__ - INFO -   ✓ DB_URL: OK
+2025-12-18 18:42:31,744 - __main__ - INFO -   ✗ PIPELINE_NAME: MISSING
+2025-12-18 18:42:31,748 - __main__ - INFO -   ✗ MODEL_NAME: MISSING
+2025-12-18 18:42:31,751 - __main__ - ERROR - Pipeline failed: Environment validation failed
