@@ -31,15 +31,8 @@ def deployment_pipeline(
     mse, rmse = evaluation(model, X_test, y_test)
     
     # Check if the model is accurate enough to deploy
-    # We use R2 or RMSE? The reference used accuracy/rmse. 
-    # Our evaluation step returns mse, rmse. Let's use 1/rmse as a proxy or just pass rmse 
-    # But deployment trigger expects higher is better for accuracy typically, or we invert logic.
-    # Actually reference deployment trigger checks if accuracy > min_accuracy. 
-    # If we pass RMSE, we might want lower is better. 
-    # For simplicity let's stick to the flow but maybe we need a dedicated accuracy metric or updated trigger logic.
-    # Let's assume the user might want to deploy regardless for now or update trigger logic later.
-    # For now, we will pass a placeholder accuracy or modify evaluation to return R2.
-    # Let's check evaluation step again.
+    # TODO: Refine the accuracy metric logic. Currently using MSE/RMSE from evaluation step.
+    # Future improvement: Use R2 score or invert RMSE logic for deployment decision.
     
     decision = deployment_trigger(accuracy=mse, min_accuracy=min_accuracy)
     

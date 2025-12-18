@@ -8,6 +8,14 @@ from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
 )
 from flask import Flask, render_template, request
 
+"""
+Flask Application for Retail Price Optimization.
+Serves a web interface for predicting sales quantity based on product features.
+Connects to either a running MLflow service or a local model artifact.
+"""
+from flask import Flask, render_template, request
+
+# Initialize Flask application
 app = Flask(__name__)
 
 # Global variables
