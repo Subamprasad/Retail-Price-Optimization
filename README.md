@@ -1,6 +1,6 @@
 # Retail Price Optimization - End-to-End MLOps Project
 
-## Hi, I'm Subam! 👋
+
 Welcome to my Retail Price Optimization project. I built this end-to-end MLOps solution to demonstrate how to build, deploy, and manage machine learning pipelines in a production-like environment.
 
 In this project, I tackled the challenge of optimizing retail prices to maximize sales quantity using real-world data concepts. I moved beyond simple notebooks to build a robust, modular system using **ZenML**, **MLflow**, and **BentoML**.
@@ -101,5 +101,4 @@ zenml show
 - I will add implementing drift detection to monitor data quality over time.
 - I want to build a frontend using Streamlit to interact with the API visually.
 
----
-*Built with ❤️ by Subam.*
+
