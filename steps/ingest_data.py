@@ -1,8 +1,12 @@
 import pandas as pd
 from zenml import step
-from data.managament.retreiver import get_latest_data
-from data.managament.fill_table import fill_table
 import logging
+import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+
+# Load env variables from CWD (Project Root)
+load_dotenv(os.path.join(os.getcwd(), ".env"))
 
 @step
 def ingest_data(
@@ -10,26 +14,21 @@ def ingest_data(
     for_predict: bool = False,
 ) -> pd.DataFrame:
     """
-    Ingests data from the database. 
-    Triggers data population if the table is empty.
-    
-    Args:
-        table_name: Name of the table to read from.
-        for_predict: If True, drops certain columns for prediction (e.g. qty).
+    Ingests data directly from DB to avoid module path issues.
     """
     try:
-        # Check if we need to initialize DB
-        # This check might need to be more robust, but kept simple for now
-        df = get_latest_data()
-        if df.empty:
-            logging.info("Database empty. Populating...")
-            fill_table()
-            df = get_latest_data()
+        db_url = os.getenv("DB_URL")
+        if not db_url:
+            raise ValueError("DB_URL environment variable is not set. Please set it in .env file.")
+
+        engine = create_engine(db_url)
+        
+        query = f"SELECT * FROM {table_name}"
+        df = pd.read_sql(query, engine)
         
         logging.info(f"Ingested {len(df)} rows from database.")
 
         if for_predict:
-            # Drop target column for prediction if present
             if "qty" in df.columns:
                 df.drop(columns=["qty"], inplace=True)
             logging.info("Dropped 'qty' column for prediction.")
@@ -43,6 +42,6 @@ def ingest_data(
 @step
 def ingest_data_for_inference(table_name: str = "retail_prices") -> pd.DataFrame:
     """
-    Ingests data specifically for inference, dropping target column.
+    Ingests data specifically for inference.
     """
     return ingest_data.entrypoint(table_name=table_name, for_predict=True)

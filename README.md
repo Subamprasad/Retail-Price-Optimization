@@ -1,112 +1,95 @@
-# Retail Price Optimization - End-to-End MLOps Project
+# Retail Price Optimization - MLOps Project
 
+Welcome to my Retail Price Optimization project! In this repository, I have built an end-to-end Machine Learning pipeline designed to solve a real-world business problem: determining the optimal pricing for retail products to maximize sales and revenue.
 
-Welcome to my Retail Price Optimization project. I built this end-to-end MLOps solution to demonstrate how to build, deploy, and manage machine learning pipelines in a production-like environment.
+I created this project to demonstrate an "industry-level" approach to ML, moving beyond simple static notebooks and into robust, scalable, and automated pipelines using **ZenML**, **MLflow**, and **PostgreSQL**.
 
-In this project, I tackled the challenge of optimizing retail prices to maximize sales quantity using real-world data concepts. I moved beyond simple notebooks to build a robust, modular system using **ZenML**, **MLflow**, and **BentoML**.
+## 🎯 Project Objective
 
----
+The core goal of this project is to predict the sales quantity of products based on various features (like price, product score, competition data, etc.). By understanding the relationship between price and demand, businesses can optimize their pricing strategies.
 
-## 🚀 How I Built This Project
+I focused on building a system that is:
+*   **Modular**: Code is organized into reusable steps and pipelines.
+*   **Reproducible**: Experiments are tracked, and data is versioned.
+*   **Deployable**: The model is served via a real-time web interface.
 
-### 1. The Architecture
-I designed this project with modularity in mind. Instead of a monolithic script, I broke down the workflow into distinct steps and pipelines:
-- **Ingestion**: I created a custom data retrieval mechanism (`data/managament/retreiver.py`) that pulls data from a PostgreSQL database, ensuring my model always trains on the latest data.
-- **Processing**: I implemented feature engineering `steps/process_data.py` to extracting temporal features (month, year, weekend) and encoding categorical variables.
-- **Training**: I used a Linear Regression model as a baseline, focusing on the *pipeline infrastructure* rather than just model complexity.
-- **Evaluation**: I integrated MLflow to track every run. My pipeline automatically evaluates the model's RMSE and decides whether to deploy it.
-- **Deployment**: I used BentoML to containerize the best model as a high-performance API service.
+## 🛠️ Tech Stack
 
-### 2. Key Technologies I Used
-- **ZenML**: To orchestrate the entire workflow. It helps me ensure reproducibility.
-- **MLflow**: For experiment tracking. I can see exactly how my model performed in every run.
-- **BentoML**: To serve the model. It automatically builds a production-ready API endpoint.
-- **PostgreSQL**: As my primary data store.
-- **Python**: The core language, using `pandas`, `scikit-learn`, and strict type hinting.
+I selected a modern MLOps stack to build this solution:
 
----
+*   **Python**: The core programming language.
+*   **ZenML**: To create reproducible and portable ML pipelines.
+*   **MLflow**: For experiment tracking (logging parameters, metrics) and model deployment.
+*   **PostgreSQL**: As the source of truth for our data ingestion.
+*   **Flask**: To build a user-friendly prediction web interface.
+*   **Scikit-Learn**: For the machine learning modeling (Linear Regression).
 
-## 📂 Code Structure Explained
+## 📂 Project Structure
 
-Here is how I organized the codebase:
+I've organized the codebase to follow best practices:
 
-- `pipelines/`: Contains the logic for connecting steps.
-    - `training_pipeline.py`: Defines the flow from data ingestion to model deployment.
-    - `inference_pipeline.py`: Handles making predictions with the deployed model.
-- `steps/`: The building blocks of my pipelines.
-    - `ingest_data.py`: Connects to my database.
-    - `process_data.py`: Handles data cleaning and feature engineering.
-    - `train_model.py`: Contains the model training logic.
-    - `evaluator.py`: Computes performance metrics.
-- `data/managament/`: My custom scripts for database operations.
-    - `fill_table.py`: Scripts I wrote to populate the initial database.
-    - `retreiver.py`: The interface I built to fetch data for the pipeline.
+*   `pipelines/`: Contains the definitions of my Training/Deployment and Inference pipelines.
+*   `steps/`: Individual logic blocks (Ingestion, Processing, Training, Evaluation) that make up the pipelines.
+*   `notebooks/`: Interactive notebooks (like `pipeline_orchestration.ipynb`) where I orchestrate the runs.
+*   `app.py`: The Flask application serving the web UI.
+*   `data/`: Where local artifact data or CSVs are stored.
+*   `run_pipeline.py`: A CLI entry point to trigger pipelines.
 
----
+## 🚀 Key Features
 
-## 🛠️ How to Run My Project
+### 1. Automated Pipelines
+Instead of running loose scripts, I defined clear pipelines:
+*   **Deployment Pipeline**: Ingests data from SQL -> Cleans it -> Trains a Model -> Evaluates it -> Deploys it if it meets accuracy standards.
+*   **Inference Pipeline**: Loads the deployed model -> Ingests new data -> Runs predictions.
+
+### 2. SQL Data Ingestion
+I integrated **PostgreSQL** to simulate a real production environment. The system connects to a local database (`cs002test`) to fetch the `retail_prices` dataset securely using environment variables.
+
+### 3. Usage of ZenML & MLflow
+I used ZenML to orchestrate the flow and MLflow to log every single run. This means I can go back and see exactly what parameters produced the best model.
+
+### 4. Interactive Web Application
+I built a clean Front-End using **HTML/CSS** and **Flask**. This allows non-technical users to input product details and get an instant sales prediction.
+
+## � How to Run
 
 ### Prerequisites
-- Python 3.8+
-- PostgreSQL
-- ZenML, BentoML, MLflow
+*   Python 3.8+
+*   PostgreSQL installed and running.
 
 ### Installation
-1.  **Clone my repo**:
-    ```bash
-    git clone https://github.com/Subamprasad/Retail-Price-Optimization-MLOPS.git
-    cd Retail-Price-Optimization-MLOPS
-    ```
-
-2.  **Install the dependencies**:
+1.  Clone this repository.
+2.  Install dependencies:
     ```bash
     pip install -r requirements.txt
-    zenml integration install bentoml mlflow -y
+    ```
+3.  Set up your `.env` file with your database credentials:
+    ```
+    DB_URL=postgresql+psycopg2://postgres:PASSWORD@localhost:5432/DATABASE_NAME
     ```
 
-3.  **Setup the Database**:
-    I've included a script to help you get started quickly:
-    ```bash
-    python data/managament/fill_table.py
-    ```
+### Running the Project
+You can run the project in two ways:
 
-### Execution
-To run the full training and deployment pipeline, simply run:
+**Option A: Using the Jupyter Notebook (Recommended)**
+Open `notebooks/pipeline_orchestration.ipynb` and run the cells to execute the training and inference pipelines interactively.
+
+**Option B: Using the CLI**
+Train and deploy the model:
 ```bash
-python run_pipeline.py --config deploy_and_predict
+python run_pipeline.py --config deploy
+```
+Run inference:
+```bash
+python run_pipeline.py --config predict
 ```
 
-If you encounter issues with the pipeline, you can run the standalone training script to generate the model:
-```bash
-python force_train.py
-```
-
-### Run the App
-Launch the prediction interface:
+### Launching the Web App
+To see the model in action:
 ```bash
 python app.py
 ```
-Open your browser at `http://localhost:5000`.
-
-### Dashboard
-You can visualize the pipelines using:
-```bash
-zenml show
-```
-
-### 📓 Interactive Analysis
-I have also included a Jupyter Notebook for exploratory data analysis (EDA) and interactive model training.
-- Check `notebooks/Analysis.ipynb` to see how I visualize price distributions and run experiments interactively.
-- To run it:
-  ```bash
-  jupyter notebook notebooks/Analysis.ipynb
-  ```
+Then open [http://localhost:5000](http://localhost:5000) in your browser.
 
 ---
-
-## 📈 Future Improvements
-- I plan to implement more complex models like XGBoost.
-- I will add implementing drift detection to monitor data quality over time.
-- I want to build a frontend using Streamlit to interact with the API visually.
-
-
+*Created by Subamprasad*

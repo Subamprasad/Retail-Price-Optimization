@@ -1,91 +1,117 @@
 import pandas as pd
-import pandas as pd
+import joblib
+import numpy as np
 from zenml.client import Client
 from zenml.integrations.mlflow.services import MLFlowDeploymentService
 from zenml.integrations.mlflow.model_deployers.mlflow_model_deployer import (
     MLFlowModelDeployer,
 )
 from flask import Flask, render_template, request
-import numpy as np
 
 app = Flask(__name__)
 
-# Load deployed model service
-try:
-    print("Connecting to MLflow Model Deployer...")
-    deployer = MLFlowModelDeployer.get_active_model_deployer()
-    services = deployer.find_model_server(
-        pipeline_name="deployment_pipeline",
-        pipeline_step_name="mlflow_model_deployer_step",
-        model_name="retail_price_model",
-        running=True,
-    )
+# Global variables
+model_service = None
+local_model = None
+predictors = []
+mode = "unknown"
+
+def load_resources():
+    global model_service, local_model, predictors, mode
     
-    if services:
-        service = services[0]
-        print(f"Connected to service: {service.prediction_url}")
-        # Identify predictors - for now we hardcode or fetch from a known artifact if possible.
-        # Ideally, we should fetch the 'predictors' artifact from the training run associated with this service.
-        # For simplicity in this step, we will use a fixed list or try to inspect the model signature if available.
-        # But wait, looking at training_pipeline, we don't easily expose predictors artifact ID here.
-        # Let's fallback to a predefined list or the one from the dataframe columns.
+    # 1. Try MLflow Service
+    try:
+        print("Attempting to connect to MLflow Model Deployer...")
+        deployer = MLFlowModelDeployer.get_active_model_deployer()
+        services = deployer.find_model_server(
+            pipeline_name="deployment_pipeline",
+            pipeline_step_name="mlflow_model_deployer_step",
+            model_name="retail_price_model",
+            running=True,
+        )
         
-        # NOTE: To truly make this dynamic without local pickles, we'd need to fetch the artifact from ZenML.
-        # For now, to suffice user request, we can assume all numeric columns from schema are predictors 
-        # OR keep predictors.pkl? User said "remove this all".
-        # Let's hardcode the predictors based on EDA knowledge for robustness or fetch from metadata store.
-        
-        # Let's use a standard list based on the dataset we know.
-        predictors = ['qty', 'total_price', 'freight_price', 'unit_price', 'product_name_lenght', 'product_description_lenght', 'product_photos_qty', 'product_weight_g', 'product_score', 'customers', 'weekday', 'weekend', 'holiday', 'month', 'year', 's', 'volume', 'comp_1', 'ps1', 'fp1', 'comp_2', 'ps2', 'fp2', 'comp_3', 'ps3', 'fp3', 'lag_price']
-        # Wait, 'qty' is target.
-        predictors = ['total_price', 'freight_price', 'unit_price', 'product_name_lenght', 'product_description_lenght', 'product_photos_qty', 'product_weight_g', 'product_score', 'customers', 'weekday', 'weekend', 'holiday', 'month', 'year', 's', 'volume', 'comp_1', 'ps1', 'fp1', 'comp_2', 'ps2', 'fp2', 'comp_3', 'ps3', 'fp3', 'lag_price']
+        if services:
+            model_service = services[0]
+            mode = "mlflow"
+            print(f"Connected to MLflow service: {model_service.prediction_url}")
+            # Try to infer predictors or use fallback list
+            # For simplicity, we use the hardcoded list or load from file if exists
+            if not predictors:
+                 try:
+                     predictors = joblib.load("predictors.pkl")
+                 except:
+                     pass
+        else:
+            print("No running MLflow service found.")
+            
+    except Exception as e:
+        print(f"MLflow connection error: {e}")
 
-    else:
-        service = None
-        predictors = []
-        print("No running service found. Please run: python run_pipeline.py --config deploy")
+    # 2. Fallback to Local Model
+    if mode != "mlflow":
+        try:
+            print("Attempting to load local model.pkl...")
+            local_model = joblib.load("model.pkl")
+            predictors = joblib.load("predictors.pkl")
+            mode = "local"
+            print("Local model loaded successfully.")
+        except Exception as e:
+            print(f"Local model loading error: {e}")
+            mode = "none"
 
-except Exception as e:
-    service = None
-    predictors = []
-    print(f"Error loading service: {e}")
+    # Default predictors if still missing
+    if not predictors:
+        # Based on dataset schema
+        predictors = ['total_price', 'freight_price', 'unit_price', 'product_name_lenght', 
+                      'product_description_lenght', 'product_photos_qty', 'product_weight_g', 
+                      'product_score', 'customers', 'weekday', 'weekend', 'holiday', 
+                      'month', 'year', 'volume', 'comp_1', 'ps1', 'fp1', 'comp_2', 
+                      'ps2', 'fp2', 'comp_3', 'ps3', 'fp3', 'lag_price']
 
+load_resources()
 
 @app.route("/", methods=["GET", "POST"])
 def home():
     prediction = None
+    
     if request.method == "POST":
-        if not service:
-            return render_template("index.html", prediction="Model service not active. Run deployment pipeline.", predictors=predictors)
+        if mode == "none":
+            return render_template("index.html", prediction="Error: No model available (MLflow or Local).", predictors=predictors)
             
         try:
-            # Dynamically build input dataframe based on predictors
+            # Build input
             input_data = {}
             for col in predictors:
                 val = request.form.get(col)
                 if val:
                     input_data[col] = float(val)
                 else:
-                    input_data[col] = 0.0 # Default handling
+                    input_data[col] = 0.0 # Default
             
             df = pd.DataFrame([input_data])
             
-            # If the model expects specific structure (like constant added by statsmodels), 
-            # sklearn LinearRegression usually handles just X.
-            # However, my training used sklearn LinearRegression.
-            
-            df = pd.DataFrame([input_data])
-            json_data = df.to_json(orient="split")
-            
-            # Predict using the service
-            pred_response = service.predict(json_data)
-            # Response might be a numpy array or list inside
-            pred = pred_response[0] if len(pred_response) > 0 else 0
-            
-            prediction = f"Predicted Sales Quantity: {pred:.2f}"
+            pred = 0.0
+            if mode == "mlflow":
+                json_data = df.to_json(orient="split")
+                response = model_service.predict(json_data)
+                # response typically numpy array
+                if hasattr(response, "flatten"):
+                     pred = response.flatten()[0]
+                elif isinstance(response, list):
+                     pred = response[0]
+                else:
+                     pred = float(response)
+                     
+            elif mode == "local":
+                # Ensure input structure matches exactly what model expects?
+                # Sklearn is lenient usually if columns match
+                resp = local_model.predict(df)
+                pred = resp[0]
+                
+            prediction = f"Predicted Sales Quantity: {pred:.2f} (Mode: {mode})"
             
         except Exception as e:
-            prediction = f"Error: {e}"
+            prediction = f"Prediction Error: {e}"
 
     return render_template("index.html", prediction=prediction, predictors=predictors)
 
