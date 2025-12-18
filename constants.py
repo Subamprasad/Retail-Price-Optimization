@@ -1,5 +1,4 @@
 
-MODEL_NAME = "retail_price"
-SERVICE_NAME = "retail_price_service"
-PIPELINE_STEP_NAME = "bentoml_model_deployer_step"
-PIPELINE_NAME = "training_retail"
+PIPELINE_NAME = "deployment_pipeline"
+PIPELINE_STEP_NAME = "mlflow_model_deployer_step"
+MODEL_NAME = "retail_price_model"

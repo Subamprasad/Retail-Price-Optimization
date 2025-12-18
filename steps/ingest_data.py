@@ -39,3 +39,10 @@ def ingest_data(
     except Exception as e:
         logging.error(f"Error while ingesting data: {e}")
         raise e
+
+@step
+def ingest_data_for_inference(table_name: str = "retail_prices") -> pd.DataFrame:
+    """
+    Ingests data specifically for inference, dropping target column.
+    """
+    return ingest_data.entrypoint(table_name=table_name, for_predict=True)
