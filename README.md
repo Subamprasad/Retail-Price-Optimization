@@ -94,6 +94,14 @@ You can visualize the pipelines using:
 zenml show
 ```
 
+### 📓 Interactive Analysis
+I have also included a Jupyter Notebook for exploratory data analysis (EDA) and interactive model training.
+- Check `notebooks/Analysis.ipynb` to see how I visualize price distributions and run experiments interactively.
+- To run it:
+  ```bash
+  jupyter notebook notebooks/Analysis.ipynb
+  ```
+
 ---
 
 ## 📈 Future Improvements
