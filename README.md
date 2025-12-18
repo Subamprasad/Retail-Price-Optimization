@@ -1,67 +1,105 @@
-# Retail Price Optimization - Help them to sell more
+# Retail Price Optimization - End-to-End MLOps Project
 
-In today's competitive retail market, setting the right price for products is crucial. This project focuses on retail price optimization using machine learning techniques to predict customer satisfaction scores. This is a crucial part of developing dynamic pricing strategies, leading to increased sales and customer satisfaction.
+## Hi, I'm Subam! 👋
+Welcome to my Retail Price Optimization project. I built this end-to-end MLOps solution to demonstrate how to build, deploy, and manage machine learning pipelines in a production-like environment.
 
-**Problem statement:** Our task is to develop a model that predicts the optimal price for a product based on various factors. This prediction would enable us to make an informed decision when pricing a product, leading to maximized sales and customer satisfaction.
+In this project, I tackled the challenge of optimizing retail prices to maximize sales quantity using real-world data concepts. I moved beyond simple notebooks to build a robust, modular system using **ZenML**, **MLflow**, and **BentoML**.
 
-The dataset's diverse features like product details, order details, review details, pricing, competition, time, and customer details provide a comprehensive view for our price optimization task.
+---
 
-By analyzing this information, we aim to predict the optimal price for retail products. This would aid in making strategic pricing decisions, thereby optimizing retail prices effectively.
+## 🚀 How I Built This Project
 
-The sample dataset includes various details about each order, such as:
+### 1. The Architecture
+I designed this project with modularity in mind. Instead of a monolithic script, I broke down the workflow into distinct steps and pipelines:
+- **Ingestion**: I created a custom data retrieval mechanism (`data/managament/retreiver.py`) that pulls data from a PostgreSQL database, ensuring my model always trains on the latest data.
+- **Processing**: I implemented feature engineering `steps/process_data.py` to extracting temporal features (month, year, weekend) and encoding categorical variables.
+- **Training**: I used a Linear Regression model as a baseline, focusing on the *pipeline infrastructure* rather than just model complexity.
+- **Evaluation**: I integrated MLflow to track every run. My pipeline automatically evaluates the model's RMSE and decides whether to deploy it.
+- **Deployment**: I used BentoML to containerize the best model as a high-performance API service.
 
-- Product details: ID, category, weight, dimensions, and more.
-- Order details: Approved date, delivery date, estimated delivery date, and more.
-- Review details: Score and comments.
-- Pricing and competition details: Total price, freight price, unit price, competitor prices, and more.
-- Time details: Month, year, weekdays, weekends, holidays.
-- Customer details: ZIP code, order item ID.
+### 2. Key Technologies I Used
+- **ZenML**: To orchestrate the entire workflow. It helps me ensure reproducibility.
+- **MLflow**: For experiment tracking. I can see exactly how my model performed in every run.
+- **BentoML**: To serve the model. It automatically builds a production-ready API endpoint.
+- **PostgreSQL**: As my primary data store.
+- **Python**: The core language, using `pandas`, `scikit-learn`, and strict type hinting.
 
-## 🐍 Python Requirements
+---
 
-Let's jump into the Python packages you need. Within the Python environment of your choice, run:
+## 📂 Code Structure Explained
 
-```python
-git clone https://github.com/zenml-io/zenml-projects.git
-pip install -r requirements.txt
+Here is how I organized the codebase:
+
+- `pipelines/`: Contains the logic for connecting steps.
+    - `training_pipeline.py`: Defines the flow from data ingestion to model deployment.
+    - `inference_pipeline.py`: Handles making predictions with the deployed model.
+- `steps/`: The building blocks of my pipelines.
+    - `ingest_data.py`: Connects to my database.
+    - `process_data.py`: Handles data cleaning and feature engineering.
+    - `train_model.py`: Contains the model training logic.
+    - `evaluator.py`: Computes performance metrics.
+- `data/managament/`: My custom scripts for database operations.
+    - `fill_table.py`: Scripts I wrote to populate the initial database.
+    - `retreiver.py`: The interface I built to fetch data for the pipeline.
+
+---
+
+## 🛠️ How to Run My Project
+
+### Prerequisites
+- Python 3.8+
+- PostgreSQL
+- ZenML, BentoML, MLflow
+
+### Installation
+1.  **Clone my repo**:
+    ```bash
+    git clone https://github.com/Subamprasad/Retail-Price-Optimization-MLOPS.git
+    cd Retail-Price-Optimization-MLOPS
+    ```
+
+2.  **Install the dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    zenml integration install bentoml mlflow -y
+    ```
+
+3.  **Setup the Database**:
+    I've included a script to help you get started quickly:
+    ```bash
+    python data/managament/fill_table.py
+    ```
+
+### Execution
+To run the full training and deployment pipeline, simply run:
+```bash
+python run_pipeline.py --config deploy_and_predict
 ```
 
-Starting with ZenML 0.20.0, ZenML comes bundled with a React-based dashboard. This dashboard allows you to observe your stacks, stack components and pipeline DAGs in a dashboard interface. To access this, you need to launch the ZenML Server and Dashboard locally, but first you must install the optional dependencies for the ZenML server:
-
-```python
-pip install zenml["server"]
-zenml up
+If you encounter issues with the pipeline, you can run the standalone training script to generate the model:
+```bash
+python force_train.py
 ```
 
-If you are running the `run_cid_pipeline.p`y` script, you will also need to install some integrations using ZenML:
-
+### Run the App
+Launch the prediction interface:
+```bash
+python app.py
 ```
-zenml integration install mlflow -y
-zenml integration install bentoml
-```
+Open your browser at `http://localhost:5000`.
 
-The project can only be executed with a ZenML stack that has an MLflow experiment tracker and BentoML model deployer as a component. Configuring a new stack with the two components are as follows:
-
-```
-zenml experiment-tracker register mlflow_tracker --flavor=mlflow
-zenml model-deployer register bentoml_deployer --flavor=bentoml
-zenml stack register local_bentoml_stack \
-  -a default \
-  -o default \
-  -d bentoml_deployer \
-  -e mlflow_tracker
-  --set
+### Dashboard
+You can visualize the pipelines using:
+```bash
+zenml show
 ```
 
-## 🚀 Training Pipeline
+---
 
-Our standard training pipeline consists of several steps:
+## 📈 Future Improvements
+- I plan to implement more complex models like XGBoost.
+- I will add implementing drift detection to monitor data quality over time.
+- I want to build a frontend using Streamlit to interact with the API visually.
 
-- `ingest`: Ingests the data from the databas into the ZenML repository.
-- `categorical_encoder`: Encodes the categorical features of the dataset.
-- `feature_engineer`: Create new features from the existing features.
-- `split`: Splits the dataset into train and eval splits.
-- `train`: Trains the model on the training split.
-- `evaluate`: Evaluates the model on the eval split.
-- `decision`:
-- `deploy`: Deploys the model to a BentoML endpoint.
+---
+*Built with ❤️ by Subam.*

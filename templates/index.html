@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Price Optimizer</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: var(--card);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        form {
+            display: grid;
+            gap: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+        input {
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: white;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+        button {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+        button:hover {
+            background-color: #4f46e5;
+        }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #312e81;
+            border: 1px solid #4338ca;
+            border-radius: 0.5rem;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #e0e7ff;
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Retail Price Optimizer</h1>
+        
+        {% if not predictors %}
+            <p style="text-align: center; color: #ef4444;">Model not loaded. Please ensure model.pkl exists.</p>
+        {% else %}
+            <form method="POST">
+                {% for col in predictors %}
+                <div class="form-group">
+                    <label for="{{ col }}">{{ col.replace('_', ' ').title() }}</label>
+                    <input type="number" step="any" name="{{ col }}" id="{{ col }}" placeholder="Enter value..." required>
+                </div>
+                {% endfor %}
+                <button type="submit">Predict Sales</button>
+            </form>
+        {% endif %}
+
+        {% if prediction %}
+        <div class="result">
+            {{ prediction }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
